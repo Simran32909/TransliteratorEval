@@ -10,21 +10,12 @@ except ImportError:
     from aksharamukha import transliterate
 
 def get_available_scripts():
-    """Returns a list of all available scripts in Aksharamukha."""
-    return transliterate.get_available_scripts()
+    # The get_available_scripts() method doesn't exist in the aksharamukha library
+    # Instead, we can access the available scripts from the Transliterator's db attribute
+    trans = transliterate.Transliterator()
+    return sorted(list(trans.db.keys()))
 
 def transliterate_text(text, source_script, target_script):
-    """
-    Transliterate text from source script to target script.
-    
-    Args:
-        text (str): Text to transliterate
-        source_script (str): Source script name
-        target_script (str): Target script name
-    
-    Returns:
-        str: Transliterated text
-    """
     try:
         return transliterate.process(source_script, target_script, text)
     except Exception as e:
@@ -32,20 +23,7 @@ def transliterate_text(text, source_script, target_script):
         return None
 
 def transliterate_file(input_file, output_file, source_script, target_script):
-    """
-    Transliterate content of a file from source script to target script.
-    
-    Args:
-        input_file (str): Path to input file
-        output_file (str): Path to output file
-        source_script (str): Source script name
-        target_script (str): Target script name
-    
-    Returns:
-        bool: True if successful, False otherwise
-    """
     try:
-        # Create output directory if it doesn't exist
         output_path = Path(output_file).parent
         os.makedirs(output_path, exist_ok=True)
         
@@ -66,4 +44,5 @@ def transliterate_file(input_file, output_file, source_script, target_script):
         return False
 
 if __name__ == "__main__":
+    # Example usage
     print("Available scripts:", get_available_scripts())
