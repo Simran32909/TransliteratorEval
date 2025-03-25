@@ -89,84 +89,28 @@ def compare_texts(original_text, transliterated_text, sample_size=5000, sample_c
     common_chars = orig_char_set.intersection(trans_char_set)
     char_set_similarity = len(common_chars) / max(len(orig_char_set), len(trans_char_set))
 
-    should_sample = orig_chars > sample_size and trans_chars > sample_size
+    # Always perform full character comparison
+    orig_char_freq = Counter(original_clean)
+    trans_char_freq = Counter(transliterated_clean)
 
-    if should_sample:
-        similarity_ratios = []
-        lost_chars_samples = []
-        added_chars_samples = []
-        sample_differences = []
-        char_match_counts = []
+    lost_chars = {c: orig_char_freq[c] for c in orig_char_freq if c not in trans_char_freq or orig_char_freq[c] > trans_char_freq[c]}
+    added_chars = {c: trans_char_freq[c] for c in trans_char_freq if c not in orig_char_freq or trans_char_freq[c] > orig_char_freq[c]}
 
-        sample_interval = min(orig_chars, trans_chars) // (sample_count + 1)
+    match_count = sum(1 for a, b in zip(original_clean, transliterated_clean) if a == b)
+    char_match_similarity = match_count / min(len(original_clean), len(transliterated_clean))
 
-        for i in range(1, sample_count + 1):
-            start_pos = i * sample_interval
+    sequence_matcher = difflib.SequenceMatcher(None, original_clean, transliterated_clean)
+    difflib_similarity = sequence_matcher.quick_ratio()
 
-            if start_pos + sample_size > min(orig_chars, trans_chars):
-                start_pos = min(orig_chars, trans_chars) - sample_size
+    similarity_ratio = (0.7 * char_match_similarity) + (0.3 * difflib_similarity)
 
-            orig_sample = original_clean[start_pos:start_pos+sample_size]
-            trans_sample = transliterated_clean[start_pos:start_pos+sample_size]
+    orig_words = original_clean.split()[:200]
+    trans_words = transliterated_clean.split()[:200]
 
-            match_count = sum(1 for a, b in zip(orig_sample, trans_sample) if a == b)
-            match_ratio = match_count / min(len(orig_sample), len(trans_sample))
-            char_match_counts.append(match_ratio)
+    differ = difflib.Differ()
+    diff_list = list(differ.compare(orig_words, trans_words))
 
-            orig_char_freq = Counter(orig_sample)
-            trans_char_freq = Counter(trans_sample)
-
-            sample_lost = {c: orig_char_freq[c] for c in orig_char_freq if c not in trans_char_freq or orig_char_freq[c] > trans_char_freq[c]}
-            sample_added = {c: trans_char_freq[c] for c in trans_char_freq if c not in orig_char_freq or trans_char_freq[c] > orig_char_freq[c]}
-
-            lost_chars_samples.append(sample_lost)
-            added_chars_samples.append(sample_added)
-
-            seq_matcher = difflib.SequenceMatcher(None, orig_sample, trans_sample)
-            similarity_ratios.append(seq_matcher.quick_ratio())
-
-            if i == 1:
-                orig_words = orig_sample.split()[:100]
-                trans_words = trans_sample.split()[:100]
-
-                differ = difflib.Differ()
-                diff_list = list(differ.compare(orig_words, trans_words))
-
-                sample_differences = [d for d in diff_list if d.startswith('+ ') or d.startswith('- ')][:20]
-
-        difflib_similarity = sum(similarity_ratios) / len(similarity_ratios)
-        char_match_similarity = sum(char_match_counts) / len(char_match_counts)
-        similarity_ratio = (0.7 * char_match_similarity) + (0.3 * difflib_similarity)
-
-        lost_chars = Counter()
-        for sample in lost_chars_samples:
-            lost_chars.update(sample)
-
-        added_chars = Counter()
-        for sample in added_chars_samples:
-            added_chars.update(sample)
-    else:
-        orig_char_freq = Counter(original_clean)
-        trans_char_freq = Counter(transliterated_clean)
-
-        lost_chars = {c: orig_char_freq[c] for c in orig_char_freq if c not in trans_char_freq or orig_char_freq[c] > trans_char_freq[c]}
-        added_chars = {c: trans_char_freq[c] for c in trans_char_freq if c not in orig_char_freq or trans_char_freq[c] > orig_char_freq[c]}
-
-        match_count = sum(1 for a, b in zip(original_clean, transliterated_clean) if a == b)
-        char_match_similarity = match_count / min(len(original_clean), len(transliterated_clean))
-
-        sequence_matcher = difflib.SequenceMatcher(None, original_clean, transliterated_clean)
-        difflib_similarity = sequence_matcher.quick_ratio()
-
-        similarity_ratio = (0.7 * char_match_similarity) + (0.3 * difflib_similarity)
-
-        orig_words = original_clean.split()[:200]
-        trans_words = transliterated_clean.split()[:200]
-
-        differ = difflib.Differ()
-        diff_list = list(differ.compare(orig_words, trans_words))
-
-        sample_differences = [d for d in diff_list if d.startswith('+ ') or d.startswith('- ')][:20]
+    sample_differences = [d for d in diff_list if d.startswith('+ ') or d.startswith('- ')][:20]
 
     return {
         "original_length": orig_chars,
