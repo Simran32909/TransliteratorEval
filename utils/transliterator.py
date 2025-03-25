@@ -44,5 +44,4 @@ def transliterate_file(input_file, output_file, source_script, target_script):
         return False
 
 if __name__ == "__main__":
-    # Example usage
-    print("Available scripts:", get_available_scripts())
+    print("Available scripts:", get_available_scripts()) # List available scripts

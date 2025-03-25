@@ -6,8 +6,7 @@ import datetime
 from transliterator import transliterate_file, get_available_scripts
 from compare_texts import compare_files
 
-def create_output_filename(input_file, script, output_dir=None):
-
+def create_output_filename(input_file, source_script, target_script, output_dir=None):
     input_path = Path(input_file)
     base_name = input_path.stem
     
@@ -18,14 +17,15 @@ def create_output_filename(input_file, script, output_dir=None):
     
     os.makedirs(output_path, exist_ok=True)
     
-    return str(output_path / f"{base_name}_{script.lower()}{input_path.suffix}")
+    return str(output_path / f"{base_name}_{source_script.lower()}_to_{target_script.lower()}{input_path.suffix}")
 
-def run_transliteration_pipeline(input_file, output_dir=None, log_dir=None):
+def run_transliteration_pipeline(input_file, source_script, target_script, output_dir=None, log_dir=None):
     """
-    Run full transliteration pipeline: IAST → Devanagari → IAST and compare.
-    
+    Run transliteration pipeline between any two scripts and compare.
     Args:
-        input_file (str): Path to input file in IAST
+        input_file (str): Path to input file
+        source_script (str): Source script (e.g., "IAST", "Devanagari", "Telugu")
+        target_script (str): Target script (e.g., "IAST", "Devanagari", "Telugu")
         output_dir (str, optional): Directory for output files. Defaults to None.
         log_dir (str, optional): Directory for log files. Defaults to None.
     
@@ -34,6 +34,8 @@ def run_transliteration_pipeline(input_file, output_dir=None, log_dir=None):
     """
     try:
         print(f"Starting transliteration pipeline for {input_file}")
+        print(f"Source script: {source_script}")
+        print(f"Target script: {target_script}")
         start_time = time.time()
         
         # Set up directories
@@ -52,26 +54,26 @@ def run_transliteration_pipeline(input_file, output_dir=None, log_dir=None):
         
         # File paths
         input_base = Path(input_file).stem
-        devanagari_file = str(output_dir / f"{input_base}_devanagari.txt")
-        back_to_iast_file = str(output_dir / f"{input_base}_back_to_iast.txt")
+        transliterated_file = create_output_filename(input_file, source_script, target_script, output_dir)
+        back_to_source_file = create_output_filename(input_file, target_script, source_script, output_dir)
         
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = str(log_dir / f"transliteration_comparison_{timestamp}.log")
+        log_file = str(log_dir / f"transliteration_comparison_{source_script.lower()}_to_{target_script.lower()}_{timestamp}.log")
         
-        # Step 1: IAST to Devanagari
-        print("Step 1: Transliterating from IAST to Devanagari...")
-        if not transliterate_file(input_file, devanagari_file, "IAST", "Devanagari"):
-            print("Failed to transliterate from IAST to Devanagari")
+        # Step 1: Source to Target script
+        print(f"Step 1: Transliterating from {source_script} to {target_script}...")
+        if not transliterate_file(input_file, transliterated_file, source_script, target_script):
+            print(f"Failed to transliterate from {source_script} to {target_script}")
             return False
         
-        # Step 2: Devanagari back to IAST
-        print("Step 2: Transliterating from Devanagari back to IAST...")
-        if not transliterate_file(devanagari_file, back_to_iast_file, "Devanagari", "IAST"):
-            print("Failed to transliterate from Devanagari back to IAST")
+        # Step 2: Target back to Source script
+        print(f"Step 2: Transliterating from {target_script} back to {source_script}...")
+        if not transliterate_file(transliterated_file, back_to_source_file, target_script, source_script):
+            print(f"Failed to transliterate from {target_script} back to {source_script}")
             return False
         
         print("Step 3: Comparing original and transliterated text...")
-        if not compare_files(input_file, back_to_iast_file, log_file):
+        if not compare_files(input_file, back_to_source_file, log_file):
             print("Failed to compare files")
             return False
         
@@ -85,8 +87,10 @@ def run_transliteration_pipeline(input_file, output_dir=None, log_dir=None):
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description="Transliterate text and compare results")
-    parser.add_argument("input_file", help="Input file in IAST script")
+    parser = argparse.ArgumentParser(description="Transliterate text between any two scripts and compare results")
+    parser.add_argument("input_file", help="Input file path")
+    parser.add_argument("source_script", help="Source script (e.g., IAST, Devanagari, Telugu)")
+    parser.add_argument("target_script", help="Target script (e.g., IAST, Devanagari, Telugu)")
     parser.add_argument("--output-dir", help="Directory for output files")
     parser.add_argument("--log-dir", help="Directory for log files")
     parser.add_argument("--list-scripts", action="store_true", help="List available scripts")
@@ -104,7 +108,13 @@ def main():
         print(f"Error: Input file {args.input_file} does not exist")
         return
     
-    success = run_transliteration_pipeline(args.input_file, args.output_dir, args.log_dir)
+    success = run_transliteration_pipeline(
+        args.input_file,
+        args.source_script,
+        args.target_script,
+        args.output_dir,
+        args.log_dir
+    )
     if not success:
         print("Transliteration pipeline failed")
         sys.exit(1)
