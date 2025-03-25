@@ -39,5 +39,5 @@ def merge_txt_files(input_directory, output_file):
 
 if __name__ == "__main__":
     input_dir = "data/raw/FinalCorpus"
-    output_file = "../data/cleaned/merged_output.txt"
+    output_file = "../data/cleaned/original_iast.txt"
     merge_txt_files(input_dir, output_file)
