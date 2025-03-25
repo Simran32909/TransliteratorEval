@@ -20,18 +20,6 @@ def create_output_filename(input_file, source_script, target_script, output_dir=
     return str(output_path / f"{base_name}_{source_script.lower()}_to_{target_script.lower()}{input_path.suffix}")
 
 def run_transliteration_pipeline(input_file, source_script, target_script, output_dir=None, log_dir=None):
-    """
-    Run transliteration pipeline between any two scripts and compare.
-    Args:
-        input_file (str): Path to input file
-        source_script (str): Source script (e.g., "IAST", "Devanagari", "Telugu")
-        target_script (str): Target script (e.g., "IAST", "Devanagari", "Telugu")
-        output_dir (str, optional): Directory for output files. Defaults to None.
-        log_dir (str, optional): Directory for log files. Defaults to None.
-    
-    Returns:
-        bool: True if successful, False otherwise
-    """
     try:
         print(f"Starting transliteration pipeline for {input_file}")
         print(f"Source script: {source_script}")
@@ -60,13 +48,13 @@ def run_transliteration_pipeline(input_file, source_script, target_script, outpu
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file = str(log_dir / f"transliteration_comparison_{source_script.lower()}_to_{target_script.lower()}_{timestamp}.log")
         
-        # Step 1: Source to Target script
+        # Source to Target script
         print(f"Step 1: Transliterating from {source_script} to {target_script}...")
         if not transliterate_file(input_file, transliterated_file, source_script, target_script):
             print(f"Failed to transliterate from {source_script} to {target_script}")
             return False
         
-        # Step 2: Target back to Source script
+        # Target back to Source script
         print(f"Step 2: Transliterating from {target_script} back to {source_script}...")
         if not transliterate_file(transliterated_file, back_to_source_file, target_script, source_script):
             print(f"Failed to transliterate from {target_script} back to {source_script}")
