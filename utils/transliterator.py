@@ -27,16 +27,19 @@ def transliterate_file(input_file, output_file, source_script, target_script):
         output_path = Path(output_file).parent
         os.makedirs(output_path, exist_ok=True)
         
-        with open(input_file, 'r', encoding='utf-8') as f:
-            text = f.read()
-        
-        transliterated_text = transliterate_text(text, source_script, target_script)
-        
-        if transliterated_text is None:
-            return False
-        
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(transliterated_text)
+        with open(input_file, 'r', encoding='utf-8') as input_f, \
+             open(output_file, 'w', encoding='utf-8') as output_f:
+            
+            for line in input_f:
+                # Process each line
+                transliterated_line = transliterate_text(line, source_script, target_script)
+                
+                if transliterated_line is None:
+                    print(f"Error transliterating line: {line.strip()}")
+                    return False
+                
+                # Write the transliterated line to output file
+                output_f.write(transliterated_line)
         
         return True
     except Exception as e:
