@@ -1,6 +1,6 @@
-Transliteration Comparison Log - 2025-03-25 18:58:24.169222
+Transliteration Comparison Log - 2025-03-26 21:14:38.076120
 Original file: data/cleaned/original_iast.txt
-Transliterated file: data\cleaned\transliterated\original_iast_devanagari_to_iast.txt
+Transliterated file: data\cleaned\transliterated\original_iast_telugu_to_iast.txt
 ================================================================================
 
 SUMMARY
@@ -8,5 +8,5 @@ SUMMARY
 Original length: 25900440 characters
 Transliterated length: 25900440 characters
 Character difference: 0 characters
-Similarity ratio: 1.0000
+Similarity ratio: 0.9817
 Character set similarity: 0.9524

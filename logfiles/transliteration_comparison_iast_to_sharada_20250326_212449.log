@@ -1,6 +1,6 @@
-Transliteration Comparison Log - 2025-03-25 19:01:18.363669
+Transliteration Comparison Log - 2025-03-26 21:34:40.639642
 Original file: data/cleaned/original_iast.txt
-Transliterated file: data\cleaned\transliterated\original_iast_telugu_to_iast.txt
+Transliterated file: data\cleaned\transliterated\original_iast_sharada_to_iast.txt
 ================================================================================
 
 SUMMARY
@@ -8,5 +8,5 @@ SUMMARY
 Original length: 25900440 characters
 Transliterated length: 25900440 characters
 Character difference: 0 characters
-Similarity ratio: 0.9817
+Similarity ratio: 1.0000
 Character set similarity: 0.9524
