@@ -3,10 +3,10 @@ import argparse
 from pathlib import Path
 import time
 import datetime
-from transliterator import transliterate_file, get_available_scripts
+from transliterator import transliterate_file, get_available_scripts, get_available_systems
 from compare_texts import compare_files
 
-def create_output_filename(input_file, source_script, target_script, output_dir=None):
+def create_output_filename(input_file, source_script, target_script, system="aksharamukha", output_dir=None):
     input_path = Path(input_file)
     base_name = input_path.stem
     
@@ -17,13 +17,14 @@ def create_output_filename(input_file, source_script, target_script, output_dir=
     
     os.makedirs(output_path, exist_ok=True)
     
-    return str(output_path / f"{base_name}_{source_script.lower()}_to_{target_script.lower()}{input_path.suffix}")
+    return str(output_path / f"{base_name}_{source_script.lower()}_to_{target_script.lower()}_{system}{input_path.suffix}")
 
-def run_transliteration_pipeline(input_file, source_script, target_script, output_dir=None, log_dir=None):
+def run_transliteration_pipeline(input_file, source_script, target_script, system="aksharamukha", output_dir=None, log_dir=None):
     try:
         print(f"Starting transliteration pipeline for {input_file}")
         print(f"Source script: {source_script}")
         print(f"Target script: {target_script}")
+        print(f"Transliteration system: {system}")
         start_time = time.time()
         
         # Set up directories
@@ -42,21 +43,21 @@ def run_transliteration_pipeline(input_file, source_script, target_script, outpu
         
         # File paths
         input_base = Path(input_file).stem
-        transliterated_file = create_output_filename(input_file, source_script, target_script, output_dir)
-        back_to_source_file = create_output_filename(input_file, target_script, source_script, output_dir)
+        transliterated_file = create_output_filename(input_file, source_script, target_script, system, output_dir)
+        back_to_source_file = create_output_filename(input_file, target_script, source_script, system, output_dir)
         
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = str(log_dir / f"transliteration_comparison_{source_script.lower()}_to_{target_script.lower()}_{timestamp}.log")
+        log_file = str(log_dir / f"transliteration_comparison_{source_script.lower()}_to_{target_script.lower()}_{system}_{timestamp}.log")
         
         # Source to Target script
-        print(f"Step 1: Transliterating from {source_script} to {target_script}...")
-        if not transliterate_file(input_file, transliterated_file, source_script, target_script):
+        print(f"Step 1: Transliterating from {source_script} to {target_script} using {system}...")
+        if not transliterate_file(input_file, transliterated_file, source_script, target_script, system):
             print(f"Failed to transliterate from {source_script} to {target_script}")
             return False
         
         # Target back to Source script
-        print(f"Step 2: Transliterating from {target_script} back to {source_script}...")
-        if not transliterate_file(transliterated_file, back_to_source_file, target_script, source_script):
+        print(f"Step 2: Transliterating from {target_script} back to {source_script} using {system}...")
+        if not transliterate_file(transliterated_file, back_to_source_file, target_script, source_script, system):
             print(f"Failed to transliterate from {target_script} back to {source_script}")
             return False
         
@@ -79,9 +80,12 @@ def main():
     parser.add_argument("input_file", help="Input file path")
     parser.add_argument("source_script", help="Source script (e.g., IAST, Devanagari, Telugu)")
     parser.add_argument("target_script", help="Target script (e.g., IAST, Devanagari, Telugu)")
+    parser.add_argument("--system", choices=get_available_systems(), default="aksharamukha", 
+                       help="Transliteration system to use")
     parser.add_argument("--output-dir", help="Directory for output files")
     parser.add_argument("--log-dir", help="Directory for log files")
     parser.add_argument("--list-scripts", action="store_true", help="List available scripts")
+    parser.add_argument("--list-systems", action="store_true", help="List available transliteration systems")
     
     args = parser.parse_args()
     
@@ -92,6 +96,13 @@ def main():
             print(f"- {script}")
         return
     
+    if args.list_systems:
+        systems = get_available_systems()
+        print("Available systems:")
+        for system in systems:
+            print(f"- {system}")
+        return
+    
     if not os.path.exists(args.input_file):
         print(f"Error: Input file {args.input_file} does not exist")
         return
@@ -100,6 +111,7 @@ def main():
         args.input_file,
         args.source_script,
         args.target_script,
+        args.system,
         args.output_dir,
         args.log_dir
     )
